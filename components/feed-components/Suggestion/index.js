@@ -11,7 +11,6 @@ const Suggestion = (props) => {
     }))
     setSuggestion(list)
   }, [])
-  console.log(suggestion)
   return (
     <div>
       <div className='mt-4 ml-10'>

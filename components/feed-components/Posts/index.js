@@ -1,30 +1,30 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Post from '../Post'
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
+import { db } from '../../../firebase'
 
 const Posts = props => {
 
-  const posts = [{
-    id: 1,
-    username: 'nguyenthuthuy',
-    avatar: 'http://lh3.ggpht.com/-yTn7Xc6YpII/WowY7yTjYcI/AAAAAAAAPlc/03foS8sY9ZQt21662m4irkORUfkUpQBJgCLcBGAs/s0/37-jpg',
-    imagePost: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1200px-Image_created_with_a_mobile_phone.png',
-    caption: 'Learn the difference between Formal & Informal words. ❤'
-  }, {
-    id: 2,
-    username: 'nguyenthuthuy',
-    avatar: 'http://lh3.ggpht.com/-yTn7Xc6YpII/WowY7yTjYcI/AAAAAAAAPlc/03foS8sY9ZQt21662m4irkORUfkUpQBJgCLcBGAs/s0/37-jpg',
-    imagePost: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1200px-Image_created_with_a_mobile_phone.png',
-    caption: 'Learn the difference between Formal & Informal words. ❤'
-  }]
+  const [posts, setPosts] = useState([])
+
+  useEffect(() => {
+    const unSubscribe = onSnapshot(query(collection(db, 'posts'), orderBy('timestamp', 'desc')), snapshot => {
+      setPosts(snapshot.docs)
+    })
+
+    return unSubscribe
+  }, [db])
+
   return (
     <div>
       {posts.map(post => (
         <Post
-        id={post.id}
-        username={post.username}
-        avatar={post.avatar}
-        imagePost={post.imagePost}
-        caption={post.caption}
+          key={post.id}
+          id={post.id}
+          username={post.data().username}
+          avatar={post.data().profileImage}
+          imagePost={post.data().image}
+          caption={post.data().caption}
         />
       ))}
     </div>

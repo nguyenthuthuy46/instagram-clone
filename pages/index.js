@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Header from '../components/layouts-components/Header'
 import Feed from '../components/layouts-components/Feed'
+import Modal from '../components/util-components/Modal'
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <Header />
       {/*  Feed*/}
       <Feed />
+      <Modal />
       {/*  Footer*/}
     </div>
   )

@@ -4,7 +4,7 @@ import { BookmarkIcon, ChatIcon, HeartIcon, PaperAirplaneIcon, EmojiHappyIcon } 
 import { useSession } from 'next-auth/react'
 import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../../firebase'
-import moment from "moment"
+import moment from 'moment'
 const Post = ({ id, username, avatar, imagePost, caption }) => {
   const { data: session } = useSession()
   const [comment, setComment] = useState('')
@@ -66,7 +66,7 @@ const Post = ({ id, username, avatar, imagePost, caption }) => {
                 <span className="font-bold">{cmt.data().username}</span>{" "}
                 <span>{cmt.data().comment}</span>
               </p>
-              <p>{console.log(cmt.data())}</p>
+              <p className="pr-5 text-sm">{moment(cmt?.data()?.timestamp?.toDate()).fromNow()}</p>
             </div>
           ))}
         </div>

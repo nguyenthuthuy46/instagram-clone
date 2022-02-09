@@ -1,14 +1,28 @@
 import React, { useEffect, useState } from 'react'
 import { DotsHorizontalIcon } from '@heroicons/react/solid'
 import { BookmarkIcon, ChatIcon, HeartIcon, PaperAirplaneIcon, EmojiHappyIcon } from '@heroicons/react/outline'
+import { HeartIcon as HeartIconFilled } from '@heroicons/react/solid'
 import { useSession } from 'next-auth/react'
-import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore'
+import {
+  addDoc,
+  setDoc,
+  deleteDoc,
+  doc,
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp
+} from 'firebase/firestore'
 import { db } from '../../../firebase'
 import moment from 'moment'
+
 const Post = ({ id, username, avatar, imagePost, caption }) => {
   const { data: session } = useSession()
   const [comment, setComment] = useState('')
   const [comments, setComments] = useState('')
+  const [likes, setLikes] = useState([])
+  const [hasLiked, setHasLiked] = useState(false)
 
   useEffect(
     () => onSnapshot(
@@ -16,7 +30,27 @@ const Post = ({ id, username, avatar, imagePost, caption }) => {
       snapshot => setComments(snapshot.docs))
     , [db])
 
-  console.log(comments)
+  useEffect(() => onSnapshot(
+    query(collection(db, 'posts', id, 'likes')), (snapshot) => {
+      setLikes(snapshot.docs)
+    }
+  ), [db])
+
+  useEffect(() => setHasLiked(
+    likes.findIndex((like, i) => like.id === session?.user?._id) !== -1
+  ), [likes])
+
+
+
+  const likePost = async () => {
+    if (hasLiked) {
+      await deleteDoc(doc(db, 'posts', id, 'likes', session.user._id))
+    } else {
+      await setDoc(doc(db, 'posts', id, 'likes', session.user._id), {
+        username: session.user.username
+      })
+    }
+  }
 
   const sendComment = async (e) => {
     e.preventDefault()
@@ -46,27 +80,35 @@ const Post = ({ id, username, avatar, imagePost, caption }) => {
       {session && (
         <div className='flex justify-between px-4 pt-4'>
           <div className='flex space-x-4'>
-            <HeartIcon className='btn' />
+            {hasLiked ? (
+              <HeartIconFilled onClick={likePost} className='btn text-red-600' />
+            ) : (
+              <HeartIcon onClick={likePost} className='btn' />
+            )}
             <ChatIcon className='btn' />
             <PaperAirplaneIcon className='btn' />
           </div>
           <BookmarkIcon className='btn' />
         </div>
       )}
+
       <p className='p-5 truncate'>
+        {likes.length > 0 && (
+          <p className='font-bold mb-1'>{likes.length} likes</p>
+        )}
         <span className='font-bold mr-1'>{username}</span> {caption}
       </p>
 
       {comments.length > 0 && (
         <div className='ml-10 h-20 overflow-y-scroll scrollbar-thumb-black scrollbar-thin'>
           {comments.map((cmt, i) => (
-            <div key={cmt.id} className="flex items-center space-x-2 mb-2">
-              <img src={cmt.data().userAvatar} alt='' className="h-7 rounded-full"/>
-              <p className="text-sm flex-1">
-                <span className="font-bold">{cmt.data().username}</span>{" "}
+            <div key={cmt.id} className='flex items-center space-x-2 mb-2'>
+              <img src={cmt.data().userAvatar} alt='' className='h-7 rounded-full' />
+              <p className='text-sm flex-1'>
+                <span className='font-bold'>{cmt.data().username}</span>{' '}
                 <span>{cmt.data().comment}</span>
               </p>
-              <p className="pr-5 text-sm">{moment(cmt?.data()?.timestamp?.toDate()).fromNow()}</p>
+              <p className='pr-5 text-sm'>{moment(cmt?.data()?.timestamp?.toDate()).fromNow()}</p>
             </div>
           ))}
         </div>
